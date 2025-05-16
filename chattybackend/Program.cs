@@ -15,7 +15,11 @@ builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowNextJs", policy =>
         {
-            policy.WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod().AllowCredentials().SetPreflightMaxAge(TimeSpan.FromSeconds(600));
+            policy.WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+            .SetPreflightMaxAge(TimeSpan.FromSeconds(600));
         });
 
     });

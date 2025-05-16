@@ -5,7 +5,7 @@ import styles from "./ChatrRoom.module.css";
 interface ChatRoomProps {
   roomCode: string;
   userName: string;
-  connection: signalR.HubConnection;
+  connection: signalR.HubConnection | null;
   onLeaveRoom: () => void;
 }
 
@@ -77,7 +77,13 @@ export default function ChatRoom({
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // white space trim
     if (!newMessage.trim()) {
+      return;
+    }
+
+    if (!connection) {
+      console.error("LỖI: Kết nối SignalR chưa được thiết lập.");
       return;
     }
 

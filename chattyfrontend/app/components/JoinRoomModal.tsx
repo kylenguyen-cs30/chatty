@@ -1,8 +1,7 @@
 "use client";
 import styles from "./JoinRoomModal.module.css";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import * as signalR from "@microsoft/signalr";
-import { connection } from "next/server";
 
 interface JoinRoomModalProps {
   isCreating: boolean;
@@ -32,6 +31,14 @@ export default function JoinRoomModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const hubURL: string =
+      process.env.NEXT_PUBLIC_SIGNALR_HUB_URL ??
+      "http://localhost:5085/chatHub";
+
+    if (!hubURL) {
+      console.error("Biến môi trường không được định nghĩa. check lại build");
+      return;
+    }
     if (!roomCode || !userName) {
       setError("Please enter your username and room code!!");
       return;
@@ -39,7 +46,7 @@ export default function JoinRoomModal({
 
     // tạo đối tượng connection cho signalR
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl("http://localhost:5085/chatHub")
+      .withUrl(hubURL)
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Information) // add more loggin
       .build();
@@ -67,6 +74,7 @@ export default function JoinRoomModal({
       await connection.invoke("JoinRoom", roomCode, userName); //invoke là method để call function trong api request
     } catch (error) {
       setError("Failed to connect server");
+      console.error("THONG BAO LOI : ", error);
     }
   };
 

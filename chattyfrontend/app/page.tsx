@@ -3,13 +3,16 @@ import styles from "./page.module.css";
 import React, { useState } from "react";
 import JoinRoomModal from "./components/JoinRoomModal";
 import ChatRoom from "./components/ChatRoom";
+import * as signalR from "@microsoft/signalr";
 
 export default function Home() {
   // isInRoom, roomCode, userName, connection, isCreating
   const [isInRoom, setisInRoom] = useState(false);
   const [roomCode, setRoomCode] = useState("");
   const [userName, setUserName] = useState("");
-  const [connection, setConnection] = useState<signalR.HubConnection>(null);
+  const [connection, setConnection] = useState<signalR.HubConnection | null>(
+    null,
+  );
   const [isCreating, setIsCreating] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
