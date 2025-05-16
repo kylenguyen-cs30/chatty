@@ -11,16 +11,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 // Đảm bảo load env-vars và JSON config
-// builder.Configuration
-//        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-//        .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
-//        .AddEnvironmentVariables();
+builder.Configuration
+       .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+       .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+       .AddEnvironmentVariables();
 
 // Read a comma-separated list of allowed origins:
 var origins = builder.Configuration
     .GetValue<string>("FRONTEND_URL", "http://localhost:3000")
     .Split(',', StringSplitOptions.RemoveEmptyEntries);
 
+Console.WriteLine("Allowed origins: " + string.Join(", ", origins));
 
 // Tinh chỉnh CORS để dev frontend có thể access backend
 builder.Services.AddSignalR();
