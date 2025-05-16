@@ -1,0 +1,104 @@
+# .NET Core
+bin/
+obj/
+*.csproj.user
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.cache
+*.bak
+*.ncb
+*.svclog
+*.log
+*.pdb
+*.mdb
+*.ilk
+*.aps
+*.meta
+*.obj
+*.iobj
+*.pch
+*.ipch
+*.tlog
+*.idb
+*.exp
+*.lib
+*.res
+*.manifest
+*.lastbuildstate
+*.tlh
+*.tli
+*.resources
+*.vs/
+*.vscode/
+*.idea/
+*.ds_store
+Thumbs.db
+
+# ASP.NET Core
+wwwroot/
+appsettings.Development.json
+appsettings.*.json
+Properties/launchSettings.json
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories
+node_modules/
+bower_components/
+
+# Visual Studio
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+x64/
+x86/
+[Aa]rchive/
+[Bb]uild/
+Generated_Code/
+Generated Files/
+_ReSharper*/
+*.ReSharper
+*.DotSettings.user
+
+# Rider
+.idea/
+*.sln.iml
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Test results
+TestResults/
+*.trx
+*.xml
+coverage.*
+
+# Publish output
+[Pp]ublish/
+[Pp]ublishOutput/
+*.pubxml
+*.pubxml.user

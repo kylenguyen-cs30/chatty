@@ -1,0 +1,95 @@
+.chat-div {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 28rem;
+  display: flex;
+  flex-direction: column;
+  height: 80vh;
+}
+
+/* CSS này dưới đây là để xây dựng giao
+* diện cho thành phần thông tin phòng và
+* nút thoát */
+.chatroom-info-div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+/* <h1 className="text-xl font-bold"> */
+
+.roominfo {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: black;
+}
+
+.leavebutton {
+  background-color: #ef4444;
+  cursor: pointer;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+.leavebutton:hover {
+  background-color: #dc2626;
+}
+
+/* Phần này là phần tin nhắn  */
+.messagebox {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.message {
+  margin-bottom: 0.5rem;
+  color: black;
+}
+
+.systemmessage {
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* send message box  */
+
+.send-message-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.send-message-form-box {
+  display: flex;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.375rem;
+  outline: none;
+  transition: box-shadow 0.2s ease;
+}
+
+.send-message-form-box:hover {
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.sendbutton {
+  background-color: #3b82f6;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.sendbutton:hover {
+  background-color: #2563eb;
+}
