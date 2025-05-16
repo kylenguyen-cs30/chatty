@@ -125,9 +125,5 @@ public class RoomManager
         {
             return new HashSet<string>();
         }
-
     }
-
-
-
 }
