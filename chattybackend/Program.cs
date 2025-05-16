@@ -23,14 +23,10 @@ var origins = builder.Configuration
 
 Console.WriteLine("Allowed origins: " + string.Join(", ", origins));
 
-// Cấu hình để lắng nghe cả HTTP và HTTPS
+// Chỉ cấu hình HTTP (Render sẽ xử lý HTTPS)
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(8080); // HTTP
-    options.ListenAnyIP(443, listenOptions =>
-    {
-        listenOptions.UseHttps(); // HTTPS
-    });
+    options.ListenAnyIP(8080); // Chỉ dùng HTTP
 });
 
 
