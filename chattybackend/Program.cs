@@ -36,7 +36,7 @@ builder.Services.AddCors(options =>
             policy.AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials()
+            // .AllowCredentials()
             .SetPreflightMaxAge(TimeSpan.FromSeconds(600));
         });
 
