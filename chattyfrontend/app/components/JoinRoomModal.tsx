@@ -35,8 +35,6 @@ export default function JoinRoomModal({
       process.env.NEXT_PUBLIC_SIGNALR_HUB_URL ??
       "http://localhost:5085/chatHub";
 
-    console.log("BIEN MOI TRUONG: ", hubURL);
-
     if (!hubURL) {
       console.error("Biến môi trường không được định nghĩa. check lại build");
       return;

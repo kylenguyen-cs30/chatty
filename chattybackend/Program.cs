@@ -37,10 +37,9 @@ builder.Services.AddCors(options =>
         options.AddPolicy("AllowNextJs", policy =>
         {
             policy.WithOrigins(origins)
-            // policy.AllowAnyOrigin()
+            // policy.AllowAnyOrigin() // de debug
             .AllowAnyHeader()
             .AllowAnyMethod()
-            // .AllowCredentials()
             .SetPreflightMaxAge(TimeSpan.FromSeconds(600));
         });
 
