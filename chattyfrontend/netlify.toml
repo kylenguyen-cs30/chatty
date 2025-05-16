@@ -1,8 +1,7 @@
-
 [build]
+  base    = "chattyfrontend"
   command = "yarn build"
   publish = ".next"
-  base = ".next"  # Chỉ định build từ thư mục hiện tại
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
