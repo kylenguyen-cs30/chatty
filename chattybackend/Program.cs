@@ -23,6 +23,19 @@ var origins = builder.Configuration
 
 Console.WriteLine("Allowed origins: " + string.Join(", ", origins));
 
+// Cấu hình để lắng nghe cả HTTP và HTTPS
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(8080); // HTTP
+    options.ListenAnyIP(443, listenOptions =>
+    {
+        listenOptions.UseHttps(); // HTTPS
+    });
+});
+
+
+
+
 // Tinh chỉnh CORS để dev frontend có thể access backend
 builder.Services.AddSignalR();
 builder.Services.AddCors(options =>
