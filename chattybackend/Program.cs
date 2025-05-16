@@ -9,13 +9,26 @@ using ChatAppBackend.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+// Đảm bảo load env-vars và JSON config
+builder.Configuration
+       .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+       .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+       .AddEnvironmentVariables();
+
+// Lấy URL frontend, fallback về localhost nếu chưa set
+string frontendUrl = builder.Configuration.GetValue<string>(
+    "FRONTEND_URL",
+    "http://localhost:3000"
+);
+
 // Tinh chỉnh CORS để dev frontend có thể access backend
 builder.Services.AddSignalR();
 builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowNextJs", policy =>
         {
-            policy.WithOrigins("http://localhost:3000")
+            policy.WithOrigins(frontendUrl)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials()
