@@ -1,0 +1,8 @@
+
+[build]
+  command = "yarn build"
+  publish = ".next"
+  base = "."  # Chỉ định build từ thư mục hiện tại
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
