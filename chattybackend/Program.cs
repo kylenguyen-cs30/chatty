@@ -23,7 +23,11 @@ var origins = builder.Configuration
 
 Console.WriteLine("Allowed origins: " + string.Join(", ", origins));
 
-
+// Chỉ cấu hình HTTP (Render sẽ xử lý HTTPS)
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(8080); // Chỉ dùng HTTP
+});
 
 
 // Tinh chỉnh CORS để dev frontend có thể access backend
@@ -32,8 +36,8 @@ builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowNextJs", policy =>
         {
-            policy.WithOrigins(origins)
-            // policy.AllowAnyOrigin()
+            // policy.WithOrigins(origins)
+            policy.AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod()
             // .AllowCredentials()

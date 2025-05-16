@@ -48,7 +48,7 @@ export default function JoinRoomModal({
 
     // tạo đối tượng connection cho signalR
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(hubURL)
+      .withUrl(hubURL, { withCredentials: false })
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Information) // add more loggin
       .build();
