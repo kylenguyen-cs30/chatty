@@ -36,8 +36,8 @@ builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowNextJs", policy =>
         {
-            // policy.WithOrigins(origins)
-            policy.AllowAnyOrigin()
+            policy.WithOrigins(origins)
+            // policy.AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod()
             // .AllowCredentials()
