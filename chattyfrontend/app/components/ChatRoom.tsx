@@ -52,11 +52,19 @@ export default function ChatRoom({
       });
 
       // xu li khi nguoi dung roi phong
-      connection.on("UserLeft", (connectionId: string) => {
-        console.log("Người dùng đã rời khỏi phòng chat");
+
+      /* connection.on("UserLeft", (connectionId: string) => { */
+      /*   console.log("Người dùng đã rời khỏi phòng chat"); */
+      /*   setMessages((prev) => [ */
+      /*     ...prev, */
+      /*     { user: "System", message: `user ${connectionId} left` }, */
+      /*   ]); */
+      /* }); */
+
+      connection.on("UserLeft", (user: string) => {
         setMessages((prev) => [
           ...prev,
-          { user: "System", message: `user ${connectionId} left` },
+          { user: "System", message: `User ${user} left` },
         ]);
       });
 

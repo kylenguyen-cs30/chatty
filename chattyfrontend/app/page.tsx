@@ -44,6 +44,12 @@ export default function Home() {
     setShowModal(true);
   };
 
+  // đóng cửa sổ Modal lại
+  const handleClose = () => {
+    setShowModal(false);
+    setIsCreating(false);
+  };
+
   return (
     <div className={styles.container}>
       {!isInRoom ? (
@@ -72,7 +78,7 @@ export default function Home() {
             <JoinRoomModal
               isCreating={isCreating}
               onJoinRoom={handleJoinRoom}
-              onClose={() => setShowModal(false)}
+              onClose={handleClose}
             />
           )}
         </>

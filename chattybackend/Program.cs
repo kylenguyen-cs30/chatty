@@ -2,8 +2,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Concurrent;
+using System.Threading.RateLimiting;
 using ChatAppBackend.Hubs;
 
 
@@ -17,11 +18,18 @@ builder.Configuration
        .AddEnvironmentVariables();
 
 // Read a comma-separated list of allowed origins:
-var origins = builder.Configuration
-    .GetValue<string>("FRONTEND_URL", "http://localhost:3000")
-    .Split(',', StringSplitOptions.RemoveEmptyEntries);
+var frontendUrl = builder.Configuration.GetValue<string>("FRONTEND_URL");
 
-Console.WriteLine("Allowed origins: " + string.Join(", ", origins));
+if (string.IsNullOrEmpty(frontendUrl))
+{
+    frontendUrl = "http://localhost:3000";
+}
+
+var origins = frontendUrl.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+Console.WriteLine("origins " + string.Join(", ", origins));
+
+
 
 // Chỉ cấu hình HTTP (Render sẽ xử lý HTTPS)
 builder.WebHost.ConfigureKestrel(options =>
@@ -49,16 +57,30 @@ builder.Services.AddCors(options =>
 // Thiết kế hàm Singleton để giữ bộ nhớ ở trong chatroom
 builder.Services.AddSingleton<RoomManager>();
 
+// add RateLimiting
+builder.Services.AddRateLimiter(options =>
+{
+
+    options.AddFixedWindowLimiter("ChatPolicy", opt =>
+    {
+        opt.PermitLimit = 50; // Giới hạn request cho mỗi IP address
+        opt.Window = TimeSpan.FromSeconds(60); // Độ dài cửa sổ : 60s
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst; // Không cho phép chờ đợi vượt ngưỡng
+        opt.QueueLimit = 0;
+    });
+});
+
 
 var app = builder.Build();
 
 // Tinh chinh Middleware
 app.UseCors("AllowNextJs");
 app.UseRouting();
+app.UseRateLimiter();
 
 
 // Đối chiếu với SignalR
-app.MapHub<ChatHub>("/chatHub");
+app.MapHub<ChatHub>("/chatHub").RequireRateLimiting("ChatPolicy");
 
 
 // optional REST API room code
@@ -73,65 +95,24 @@ app.MapGet("/api/rooms/{roomCode}", (string roomCode, RoomManager roomManager) =
     {
         return Results.NotFound();
     }
-});
+}).RequireRateLimiting("ChatPolicy");
 
-app.MapGet("/", () => "Chatty backend Online!!");
+// API Map Get 
+app.MapPost("/api/rooms/create", (RoomManager roomManager) =>
+{
+    var roomCode = roomManager.CreateRoom();
+    if (roomCode != null)
+    {
+        return Results.Ok(new { RoomCode = roomCode });
+    }
+    return Results.BadRequest("Cannont create more rooms due to limit");
+}).RequireRateLimiting("ChatPolicy");
+
+if (builder.Environment.IsDevelopment())
+{
+    app.MapGet("/", () => "Chatty backend Online!!");
+}
 
 app.Run();
 
 
-
-//đối tượng RoomManager để quản lý bộ nhớ nội
-public class RoomManager
-{
-    private readonly ConcurrentDictionary<string, HashSet<string>> _rooms = new();
-
-
-    public bool RoomExists(string roomCode)
-    {
-        return _rooms.ContainsKey(roomCode);
-    }
-
-    public bool AddUserToRoom(string roomCode, string connectionId)
-    {
-        return _rooms.AddOrUpdate(
-            roomCode,
-            new HashSet<string> { connectionId },
-          (key, set) =>
-          {
-              set.Add(connectionId);
-              return set;
-          }
-          ).Contains(connectionId);
-    }
-
-
-    // khi một trong những người tham gia thoát khỏi phòng. Phòng chat sẽ tự huỷ 
-    public bool RemoveUserFromRoom(string roomCode, string connectionId)
-    {
-        if (_rooms.TryGetValue(roomCode, out var users))
-        {
-
-            users.Remove(connectionId);
-            if (users.Count == 0)
-            {
-                _rooms.TryRemove(roomCode, out _); // room deconstructed
-                return true;
-            }
-        }
-        return false;
-    }
-
-
-    public HashSet<string> GetUsersInRoom(string roomCode)
-    {
-        if (_rooms.TryGetValue(roomCode, out var users))
-        {
-            return users;
-        }
-        else
-        {
-            return new HashSet<string>();
-        }
-    }
-}

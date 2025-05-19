@@ -15,6 +15,13 @@ namespace ChatAppBackend.Hubs
 
         public async Task JoinRoom(string roomCode, string userName)
         {
+            //check if room exist
+            if (!_roomManager.RoomExists(roomCode))
+            {
+                await Clients.Caller.SendAsync("Error", "Phong Khong Ton Tai");
+                return;
+            }
+
             // add user to room 
             if (_roomManager.AddUserToRoom(roomCode, Context.ConnectionId))
             {
@@ -38,6 +45,11 @@ namespace ChatAppBackend.Hubs
 
         public async Task SendMessage(string roomCode, string userName, string message)
         {
+            if (!_roomManager.RoomExists(roomCode))
+            {
+                await Clients.Caller.SendAsync("Error", "Phong Khong Ton Tai");
+                return;
+            }
             // phát sóng tin nhắn cho tất cả user trong phòng 
             await Clients.Group(roomCode).SendAsync("ReceiveMessage", userName, message);
         }
@@ -61,11 +73,6 @@ namespace ChatAppBackend.Hubs
 
             if (roomCode != null)
             {
-                //check Context ConnectionId
-
-
-                Console.WriteLine("What is this !!");
-                Console.WriteLine(Context.ConnectionId);
                 // remove user and check if the room should be deconstructed
                 bool roomDeconstructed = _roomManager.RemoveUserFromRoom(roomCode, Context.ConnectionId);
 

@@ -2,6 +2,7 @@
 import styles from "./JoinRoomModal.module.css";
 import React, { useState } from "react";
 import * as signalR from "@microsoft/signalr";
+import { rejects } from "assert";
 
 interface JoinRoomModalProps {
   isCreating: boolean;
@@ -18,30 +19,73 @@ export default function JoinRoomModal({
   onJoinRoom,
   onClose,
 }: JoinRoomModalProps) {
-  const [roomCode, setRoomCode] = useState(
-    isCreating ? generateRoomCode() : "",
-  );
-
+  const [roomCode, setRoomCode] = useState<string>("");
   const [userName, setUserName] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  function generateRoomCode() {
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
-  }
-
+  //-----------------------------------------------------------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const hubURL: string =
       process.env.NEXT_PUBLIC_SIGNALR_HUB_URL ??
-      "http://localhost:5085/chatHub";
+      "http://localhost:8080/chatHub";
+
+    const apiBaseUrl: string =
+      process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
     if (!hubURL) {
-      console.error("Biến môi trường không được định nghĩa. check lại build");
+      console.error(
+        "Biến môi trường không được định nghĩa. check lại build hubURL",
+      );
       return;
     }
+
+    if (!apiBaseUrl) {
+      console.error(
+        "Biến môi trường không được định nghĩa. check lại build apiBaseUrl",
+      );
+      return;
+    }
+
+    if (!isCreating && !roomCode) {
+      setError("Please enter RoomCode");
+      return;
+    }
+
+    if (!userName) {
+      setError("Vui long nhap ten nguoi dung!!");
+      return;
+    }
+
     if (!roomCode || !userName) {
       setError("Please enter your username and room code!!");
       return;
+    }
+
+    let finalRoomCode = roomCode;
+
+    if (isCreating) {
+      try {
+        console.log("Gui yeu cau toi apiBaseUrl");
+        const response = await fetch(`${apiBaseUrl}/api/rooms/create`, {
+          method: "POST",
+          headers: { "Content-Type": "Application/json" },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Khong the tao phong");
+        }
+
+        finalRoomCode = data.RoomCode;
+        console.log(`Nhan duoc ma phong ${finalRoomCode}`);
+        setRoomCode(finalRoomCode);
+      } catch (error: any) {
+        setError(error.message || "khong tao phong duoc");
+        console.error("LOI: RoomCode khong tao duoc", error);
+        return;
+      }
     }
 
     // tạo đối tượng connection cho signalR
@@ -69,18 +113,26 @@ export default function JoinRoomModal({
 
     try {
       console.log("Đang kết nối tới SignalR");
+
+      await Promise.race([
+        connection.start(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Ket noi signalR time out")), 5000),
+        ),
+      ]);
       await connection.start();
       console.log("Kết nối đã thành công, đang gọi joinRoom");
-      await connection.invoke("JoinRoom", roomCode, userName); //invoke là method để call function trong api request
+      await connection.invoke("JoinRoom", finalRoomCode, userName); //invoke là method để call function trong api request
     } catch (error) {
       setError("Failed to connect server");
       console.error("THONG BAO LOI : ", error);
     }
   };
+  //-----------------------------------------------------------
 
   return (
-    <div className={styles["modal-div"]}>
-      <div className={styles["inner-modal-div"]}>
+    <div className={styles["modal-overlay"]}>
+      <div className={styles["modal-content"]}>
         <h2 className={styles["make-join-chatroom-text"]}>
           {isCreating ? "Make Room" : "Join Room"}
         </h2>
