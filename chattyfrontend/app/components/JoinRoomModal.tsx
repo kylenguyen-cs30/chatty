@@ -22,6 +22,7 @@ export default function JoinRoomModal({
   const [roomCode, setRoomCode] = useState<string>("");
   const [userName, setUserName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   //-----------------------------------------------------------
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,32 +34,23 @@ export default function JoinRoomModal({
     const apiBaseUrl: string =
       process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
-    if (!hubURL) {
-      console.error(
-        "Biến môi trường không được định nghĩa. check lại build hubURL",
-      );
-      return;
-    }
-
-    if (!apiBaseUrl) {
-      console.error(
-        "Biến môi trường không được định nghĩa. check lại build apiBaseUrl",
-      );
-      return;
-    }
-
-    if (!isCreating && !roomCode) {
-      setError("Please enter RoomCode");
+    // checkpoints
+    if (!hubURL || !apiBaseUrl) {
+      console.error("Biến môi trường không được định nghĩa.");
+      setError("Lỗi cấu hình server!");
+      setIsLoading(false);
       return;
     }
 
     if (!userName) {
-      setError("Vui long nhap ten nguoi dung!!");
+      setError("Vui lòng nhập tên người dùng!");
+      setIsLoading(false);
       return;
     }
 
-    if (!roomCode || !userName) {
-      setError("Please enter your username and room code!!");
+    if (!isCreating && !roomCode) {
+      setError("Vui lòng nhập mã phòng!");
+      setIsLoading(false);
       return;
     }
 
@@ -73,7 +65,6 @@ export default function JoinRoomModal({
         });
 
         const data = await response.json();
-
         if (!response.ok) {
           throw new Error(data.message || "Khong the tao phong");
         }
@@ -84,6 +75,7 @@ export default function JoinRoomModal({
       } catch (error: any) {
         setError(error.message || "khong tao phong duoc");
         console.error("LOI: RoomCode khong tao duoc", error);
+        setIsLoading(false);
         return;
       }
     }
@@ -98,6 +90,7 @@ export default function JoinRoomModal({
     connection.on("JoinedRoom", (joinedRoomCode: string) => {
       console.log("đã tham gia phòng thành công");
       onJoinRoom(joinedRoomCode, userName, connection);
+      setIsLoading(false);
     });
 
     connection.on("UserJoined", (user: string) => {
@@ -109,6 +102,7 @@ export default function JoinRoomModal({
       console.error("LỖI: Kiểm Tra signalR Client");
       setError(message);
       connection.stop();
+      setIsLoading(false);
     });
 
     try {
@@ -126,6 +120,8 @@ export default function JoinRoomModal({
     } catch (error) {
       setError("Failed to connect server");
       console.error("THONG BAO LOI : ", error);
+      connection.stop();
+      setIsLoading(false);
     }
   };
   //-----------------------------------------------------------
@@ -139,20 +135,23 @@ export default function JoinRoomModal({
         {error && <p className={styles["error-text"]}>{error}</p>}
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          <div>
-            <label htmlFor="roomCode" className={styles.formlabel}>
-              Room Code
-            </label>
-            <input
-              type="text"
-              value={roomCode}
-              id="roomCode"
-              onChange={(e) => setRoomCode(e.target.value)}
-              className={styles.formInput}
-              readOnly={isCreating}
-              placeholder="Enter or Generate Room Code"
-            />
-          </div>
+          {!isCreating && (
+            <div>
+              <label htmlFor="roomCode" className={styles.formlabel}>
+                Room Code
+              </label>
+              <input
+                type="text"
+                value={roomCode}
+                id="roomCode"
+                onChange={(e) => setRoomCode(e.target.value)}
+                className={styles.formInput}
+                readOnly={isCreating}
+                placeholder="Enter or Generate Room Code"
+              />
+            </div>
+          )}
+
           <div>
             <label htmlFor="userName" className={styles.formlabel}>
               User Name

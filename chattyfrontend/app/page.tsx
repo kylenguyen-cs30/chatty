@@ -1,6 +1,6 @@
 "use client";
 import styles from "./page.module.css";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import JoinRoomModal from "./components/JoinRoomModal";
 import ChatRoom from "./components/ChatRoom";
 import * as signalR from "@microsoft/signalr";
@@ -15,6 +15,69 @@ export default function Home() {
   );
   const [isCreating, setIsCreating] = useState(false);
   const [showModal, setShowModal] = useState(false);
+
+  // Khởi tạo và quản lý HubConnection
+  useEffect(() => {
+    const hubURL: string =
+      process.env.NEXT_PUBLIC_SIGNALR_HUB_URL ??
+      "http://localhost:8080/chatHub";
+
+    // checkpoints
+    if (!hubURL) {
+      console.error("Biến môi trường không được định nghĩa.");
+      return;
+    }
+
+    const newConnection = new signalR.HubConnectionBuilder()
+      .withUrl(hubURL, { withCredentials: false })
+      .withAutomaticReconnect()
+      .configureLogging(signalR.LogLevel.Information)
+      .build();
+
+    newConnection.on("JoinedRoom", (joinedRoomCode: string) => {
+      console.log("đã tham gia phòng thành công");
+      setRoomCode(joinedRoomCode);
+      setisInRoom(true);
+      setShowModal(false);
+    });
+
+    newConnection.on("UserJoined", (user: string) => {
+      console.log(`Nguoi dung tham gia phong: ${user}`);
+    });
+
+    newConnection.on("Error", (message: string) => {
+      console.error(`Lỗi từ server: ${message}`);
+    });
+
+    // khoi dong ket noi khi component mount
+    const startConnection = async () => {
+      try {
+        if (newConnection.state !== signalR.HubConnectionState.Disconnected) {
+          console.log(
+            `Ket noi dang o trang thai ${newConnection.state}, dung...`,
+          );
+          await newConnection.stop();
+        }
+
+        console.log("Khoi Dong ket noi signalR...");
+        await newConnection.start();
+        console.log("Ket noi thanh cong");
+      } catch (error) {
+        console.error("Loi khi khoi dong ket noi", error);
+      }
+    };
+
+    startConnection();
+
+    return () => {
+      if (newConnection.state !== signalR.HubConnectionState.Disconnected) {
+        newConnection
+          .stop()
+          .catch((err) => console.error("Loi khi dung ket noi", err));
+      }
+      setConnection(null);
+    };
+  }, []);
 
   const handleJoinRoom = (
     roomCode: string,
