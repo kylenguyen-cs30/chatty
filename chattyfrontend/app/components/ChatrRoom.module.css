@@ -93,3 +93,18 @@
 .sendbutton:hover {
   background-color: #2563eb;
 }
+
+.copyButton {
+  padding: 8px 15px;
+  font-size: 0.9em;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.copyButton:hover {
+  background-color: #45a049;
+}

@@ -6,7 +6,6 @@ import ChatRoom from "./components/ChatRoom";
 import * as signalR from "@microsoft/signalr";
 
 export default function Home() {
-  // isInRoom, roomCode, userName, connection, isCreating
   const [isInRoom, setisInRoom] = useState(false);
   const [roomCode, setRoomCode] = useState("");
   const [userName, setUserName] = useState("");
@@ -15,12 +14,15 @@ export default function Home() {
   );
   const [isCreating, setIsCreating] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [isConnectionReady, setIsConnectionReady] = useState(false);
 
   // Khởi tạo và quản lý HubConnection
   useEffect(() => {
     const hubURL: string =
       process.env.NEXT_PUBLIC_SIGNALR_HUB_URL ??
-      "http://localhost:8080/chatHub";
+      "http://localhost:8081/chatHub";
+
+    console.log("hubURL: ", hubURL);
 
     // checkpoints
     if (!hubURL) {
@@ -61,7 +63,9 @@ export default function Home() {
 
         console.log("Khoi Dong ket noi signalR...");
         await newConnection.start();
-        console.log("Ket noi thanh cong");
+        console.log("Kết nối Server thành công");
+        setConnection(newConnection);
+        setIsConnectionReady(true);
       } catch (error) {
         console.error("Loi khi khoi dong ket noi", error);
       }
@@ -93,7 +97,9 @@ export default function Home() {
 
   const handleLeaveRoom = () => {
     if (connection) {
-      connection.stop();
+      connection
+        .stop()
+        .catch((err) => console.error("Lỗi khi dừng kết nối ", err));
     }
 
     setisInRoom(false);
@@ -103,6 +109,10 @@ export default function Home() {
   };
 
   const handleMakeRoom = () => {
+    if (!isConnectionReady) {
+      console.log("đang chờ kết nối...");
+      return;
+    }
     setIsCreating(true);
     setShowModal(true);
   };
@@ -137,11 +147,12 @@ export default function Home() {
               </button>
             </div>
           </div>
-          {showModal && (
+          {showModal && isConnectionReady && (
             <JoinRoomModal
               isCreating={isCreating}
               onJoinRoom={handleJoinRoom}
               onClose={handleClose}
+              connection={connection}
             />
           )}
         </>

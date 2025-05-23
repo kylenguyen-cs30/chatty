@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 
 namespace ChatAppBackend.Hubs
@@ -15,6 +16,13 @@ namespace ChatAppBackend.Hubs
 
         public async Task JoinRoom(string roomCode, string userName)
         {
+          //kiểm tra giá trị của roomCode 
+          // if (string.IsNullOrEmpty(roomCode))
+          // {
+          //     
+          // }
+
+
             //check if room exist
             if (!_roomManager.RoomExists(roomCode))
             {

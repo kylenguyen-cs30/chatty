@@ -2,7 +2,6 @@
 import styles from "./JoinRoomModal.module.css";
 import React, { useState } from "react";
 import * as signalR from "@microsoft/signalr";
-import { rejects } from "assert";
 
 interface JoinRoomModalProps {
   isCreating: boolean;
@@ -12,12 +11,14 @@ interface JoinRoomModalProps {
     connection: signalR.HubConnection,
   ) => void;
   onClose: () => void;
+  connection: signalR.HubConnection | null;
 }
 
 export default function JoinRoomModal({
   isCreating,
   onJoinRoom,
   onClose,
+  connection,
 }: JoinRoomModalProps) {
   const [roomCode, setRoomCode] = useState<string>("");
   const [userName, setUserName] = useState("");
@@ -29,10 +30,13 @@ export default function JoinRoomModal({
     e.preventDefault();
     const hubURL: string =
       process.env.NEXT_PUBLIC_SIGNALR_HUB_URL ??
-      "http://localhost:8080/chatHub";
+      "http://localhost:8081/chatHub";
 
     const apiBaseUrl: string =
-      process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+      process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8081";
+
+    console.log("hubURL:", hubURL);
+    console.log("apiBaseUrl:", apiBaseUrl);
 
     // checkpoints
     if (!hubURL || !apiBaseUrl) {
@@ -54,6 +58,13 @@ export default function JoinRoomModal({
       return;
     }
 
+    console.log("trạng tháng của Connection :", connection?.state);
+    if (!connection) {
+      setError("Không thể kết nối tới Server : Kết nối chưa được khởi tạo");
+      setIsLoading(false);
+      return;
+    }
+
     let finalRoomCode = roomCode;
 
     if (isCreating) {
@@ -65,48 +76,55 @@ export default function JoinRoomModal({
         });
 
         const data = await response.json();
+        console.log("Response từ API:", data);
+
+        // lỗi tạo phòng từ Server
         if (!response.ok) {
           throw new Error(data.message || "Khong the tao phong");
         }
 
-        finalRoomCode = data.RoomCode;
+        // checkpoints để coi roomCode có bị null không
+        if (!data.roomCode || typeof data.roomCode !== "string") {
+          throw new Error("Mã phòng không hợp lệ từ Server ");
+        }
+
+        finalRoomCode = data.roomCode;
         console.log(`Nhan duoc ma phong ${finalRoomCode}`);
         setRoomCode(finalRoomCode);
-      } catch (error: any) {
-        setError(error.message || "khong tao phong duoc");
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Lỗi kết nối tới Server (ở vị trí khung tạo phòng )";
+        setError(errorMessage || "khong tao phong duoc");
         console.error("LOI: RoomCode khong tao duoc", error);
+        connection
+          .stop()
+          .catch((error) =>
+            console.error(
+              "Thần backend ơi nói cho ta biết, mày bị gì ?? ",
+              error,
+            ),
+          );
         setIsLoading(false);
         return;
       }
     }
 
-    // tạo đối tượng connection cho signalR
-    const connection = new signalR.HubConnectionBuilder()
-      .withUrl(hubURL, { withCredentials: false })
-      .withAutomaticReconnect()
-      .configureLogging(signalR.LogLevel.Information) // add more loggin
-      .build();
-
-    connection.on("JoinedRoom", (joinedRoomCode: string) => {
-      console.log("đã tham gia phòng thành công");
-      onJoinRoom(joinedRoomCode, userName, connection);
+    if (!finalRoomCode) {
+      setError("Mã phòng không hợp lệ ");
       setIsLoading(false);
-    });
-
-    connection.on("UserJoined", (user: string) => {
-      console.log("Người tham gia:", user);
-    });
-
-    // Error Handler
-    connection.on("Error", (message: string) => {
-      console.error("LỖI: Kiểm Tra signalR Client");
-      setError(message);
-      connection.stop();
-      setIsLoading(false);
-    });
-
+      return;
+    }
     try {
       console.log("Đang kết nối tới SignalR");
+
+      if (connection.state !== signalR.HubConnectionState.Disconnected) {
+        console.log(
+          `Kết nối đang ở trạng thái ${connection.state}, đang dừng...`,
+        );
+        await connection.stop();
+      }
 
       await Promise.race([
         connection.start(),
@@ -114,13 +132,20 @@ export default function JoinRoomModal({
           setTimeout(() => reject(new Error("Ket noi signalR time out")), 5000),
         ),
       ]);
-      await connection.start();
       console.log("Kết nối đã thành công, đang gọi joinRoom");
       await connection.invoke("JoinRoom", finalRoomCode, userName); //invoke là method để call function trong api request
+      onJoinRoom(finalRoomCode, userName, connection);
     } catch (error) {
       setError("Failed to connect server");
       console.error("THONG BAO LOI : ", error);
-      connection.stop();
+      connection
+        .stop()
+        .catch((error) =>
+          console.error(
+            "Lỗi dừng kết nối Server (Vị trí hàm tạo invoke )",
+            error,
+          ),
+        );
       setIsLoading(false);
     }
   };
@@ -147,7 +172,8 @@ export default function JoinRoomModal({
                 onChange={(e) => setRoomCode(e.target.value)}
                 className={styles.formInput}
                 readOnly={isCreating}
-                placeholder="Enter or Generate Room Code"
+                placeholder="Enter Room Code"
+                disabled={isCreating}
               />
             </div>
           )}
@@ -181,8 +207,9 @@ export default function JoinRoomModal({
               type="submit"
               className={styles.submitbutton}
               aria-label="Submit button"
+              disabled={isLoading}
             >
-              {isCreating ? "Create" : "Join"}
+              {isLoading ? "Đang xử lí" : isCreating ? "Create" : "Join"}
             </button>
           </div>
         </form>

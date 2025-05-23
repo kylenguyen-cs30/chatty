@@ -7,6 +7,11 @@ public class RoomManager
 
     public bool RoomExists(string roomCode)
     {
+        if (roomCode == null)
+        {
+          Console.WriteLine("RoomCode trả null");         
+          return false;
+        }
         return _rooms.ContainsKey(roomCode);
     }
 

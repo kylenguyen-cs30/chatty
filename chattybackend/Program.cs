@@ -34,7 +34,7 @@ Console.WriteLine("origins " + string.Join(", ", origins));
 // Chỉ cấu hình HTTP (Render sẽ xử lý HTTPS)
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(8080); // Chỉ dùng HTTP
+    options.ListenAnyIP(8081); // Chỉ dùng HTTP
 });
 
 

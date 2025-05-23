@@ -51,16 +51,6 @@ export default function ChatRoom({
         }, 2000);
       });
 
-      // xu li khi nguoi dung roi phong
-
-      /* connection.on("UserLeft", (connectionId: string) => { */
-      /*   console.log("Người dùng đã rời khỏi phòng chat"); */
-      /*   setMessages((prev) => [ */
-      /*     ...prev, */
-      /*     { user: "System", message: `user ${connectionId} left` }, */
-      /*   ]); */
-      /* }); */
-
       connection.on("UserLeft", (user: string) => {
         setMessages((prev) => [
           ...prev,
@@ -81,6 +71,19 @@ export default function ChatRoom({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const handleCopy = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    navigator.clipboard
+      .writeText(roomCode)
+      .then(() => {
+        alert("Room Code Copied!!");
+      })
+      .catch((err) => {
+        console.error("error in copy roomCod", err);
+        alert("Please try again. Error in copying code");
+      });
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,9 +110,10 @@ export default function ChatRoom({
     <div className={styles["chat-div"]}>
       {/* ChatRoom Div */}
       <div className={styles["chatroom-info-div"]}>
-        <h1 className={styles.roominfo}>
-          Room: {roomCode}, User: {userName}
-        </h1>
+        <h1 className={styles.roominfo}>Room: {roomCode}</h1>
+        <button className={styles.copyButton} onClick={handleCopy}>
+          Copy
+        </button>
         <button className={styles.leavebutton} onClick={onLeaveRoom}>
           Leave
         </button>
