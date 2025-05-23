@@ -22,7 +22,7 @@ WORKDIR /app
 COPY --from=build /app/publish .
 
 # Thiết lập port và entrypoint
-ENV ASPNETCORE_URLS=http://*:${PORT:-8080}
-EXPOSE 8080
+ENV ASPNETCORE_URLS=http://*:${PORT:-8081}
+EXPOSE 8081
 
 ENTRYPOINT ["dotnet", "chattybackend.dll"]
