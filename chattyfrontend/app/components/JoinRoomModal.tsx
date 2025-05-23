@@ -35,9 +35,6 @@ export default function JoinRoomModal({
     const apiBaseUrl: string =
       process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8081";
 
-    console.log("hubURL:", hubURL);
-    console.log("apiBaseUrl:", apiBaseUrl);
-
     // checkpoints
     if (!hubURL || !apiBaseUrl) {
       console.error("Biến môi trường không được định nghĩa.");
