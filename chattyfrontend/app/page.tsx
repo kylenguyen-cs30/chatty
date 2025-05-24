@@ -16,19 +16,18 @@ export default function Home() {
   const [showModal, setShowModal] = useState(false);
   const [isConnectionReady, setIsConnectionReady] = useState(false);
 
+  const hubURL: string =
+    process.env.NEXT_PUBLIC_SIGNALR_HUB_URL ?? "http://localhost:8081/chatHub";
+
+  // checkpoints
+  if (!hubURL) {
+    console.error("Biến môi trường không được định nghĩa.");
+    return;
+  }
+
   // Khởi tạo và quản lý HubConnection
   useEffect(() => {
-    const hubURL: string =
-      process.env.NEXT_PUBLIC_SIGNALR_HUB_URL ??
-      "http://localhost:8081/chatHub";
-
-    console.log("hubURL: ", hubURL);
-
-    // checkpoints
-    if (!hubURL) {
-      console.error("Biến môi trường không được định nghĩa.");
-      return;
-    }
+    if (!hubURL) return;
 
     const newConnection = new signalR.HubConnectionBuilder()
       .withUrl(hubURL, { withCredentials: false })
@@ -80,6 +79,7 @@ export default function Home() {
           .catch((err) => console.error("Loi khi dung ket noi", err));
       }
       setConnection(null);
+      setIsConnectionReady(false);
     };
   }, []);
 
@@ -106,15 +106,38 @@ export default function Home() {
     setRoomCode("");
     setUserName("");
     setConnection(null);
+    setShowModal(false);
+    setIsConnectionReady(false);
   };
 
   const handleMakeRoom = () => {
     if (!isConnectionReady) {
-      console.log("đang chờ kết nối...");
+      const startConnection = async () => {
+        const newConnection =
+          connection ||
+          new signalR.HubConnectionBuilder()
+            .withUrl(hubURL, { withCredentials: false })
+            .withAutomaticReconnect()
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+
+        try {
+          await newConnection.start();
+          setConnection(newConnection);
+          setIsConnectionReady(true);
+          setShowModal(true);
+          setIsCreating(true);
+        } catch (error) {
+          console.error("Lỗi khi khởi tạo lại kết nối:", error);
+        }
+      };
+      startConnection();
+
       return;
+    } else {
+      setIsCreating(true);
+      setShowModal(true);
     }
-    setIsCreating(true);
-    setShowModal(true);
   };
 
   // đóng cửa sổ Modal lại
