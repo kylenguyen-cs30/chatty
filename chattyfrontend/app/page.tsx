@@ -19,15 +19,13 @@ export default function Home() {
   const hubURL: string =
     process.env.NEXT_PUBLIC_SIGNALR_HUB_URL ?? "http://localhost:8081/chatHub";
 
-  // checkpoints
-  if (!hubURL) {
-    console.error("Biến môi trường không được định nghĩa.");
-    return;
-  }
-
   // Khởi tạo và quản lý HubConnection
   useEffect(() => {
-    if (!hubURL) return;
+    // checkpoints
+    if (!hubURL) {
+      console.error("Biến môi trường không được định nghĩa.");
+      return;
+    }
 
     const newConnection = new signalR.HubConnectionBuilder()
       .withUrl(hubURL, { withCredentials: false })
@@ -81,7 +79,7 @@ export default function Home() {
       setConnection(null);
       setIsConnectionReady(false);
     };
-  }, []);
+  }, [hubURL]);
 
   const handleJoinRoom = (
     roomCode: string,
